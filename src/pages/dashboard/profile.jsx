@@ -8,12 +8,11 @@ import {
   Select,
   Option,
 } from "@material-tailwind/react";
-import { fetchProfileById, fetchGenres } from "../../api";
+import { fetchProfile, fetchGenres } from "../../api";
 
 export function Profile() {
-  const [artistId, setArtistId] = useState("1"); // Thiết lập ID mặc định là 1
-  const [artistProfile, setArtistProfile] = useState(null);
-  const [artistNames, setArtistNames] = useState([]); // Lưu tên các artist cho danh sách thả xuống
+  const [profiles, setProfiles] = useState([]);
+  const [selectedProfile, setSelectedProfile] = useState(null);
   const [genres, setGenres] = useState([]);
   const [error, setError] = useState("");
 
@@ -30,36 +29,19 @@ export function Profile() {
     loadGenres();
   }, []);
 
-  // Fetch artist profile whenever artistId changes
+  // Fetch all profiles once when the component is mounted
   useEffect(() => {
-    if (!artistId) return;
-    const fetchArtistProfile = async () => {
+    const loadProfiles = async () => {
       setError("");
       try {
-        const data = await fetchProfileById(artistId);
-        setArtistProfile(data);
+        const data = await fetchProfile();
+        setProfiles(data);
+        setSelectedProfile(data[0]); // Set the first profile as the default selection
       } catch (err) {
-        setError("Failed to fetch artist profile. Please check the Artist ID.");
+        setError("Failed to fetch profiles.");
       }
     };
-    fetchArtistProfile();
-  }, [artistId]);
-
-  // Fetch artist names for dropdown (IDs 1 to 10)
-  useEffect(() => {
-    const fetchArtistNames = async () => {
-      const names = [];
-      for (let id = 1; id <= 10; id++) {
-        try {
-          const profile = await fetchProfileById(id.toString());
-          names.push({ id: id.toString(), name: profile.fullName });
-        } catch (err) {
-          console.error(`Failed to fetch name for artist ID ${id}`);
-        }
-      }
-      setArtistNames(names);
-    };
-    fetchArtistNames();
+    loadProfiles();
   }, []);
 
   // Helper function to get genre name from genreId
@@ -74,24 +56,24 @@ export function Profile() {
         <CardBody className="p-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
             <div className="flex items-center gap-8">
-              {artistProfile && (
+              {selectedProfile && (
                 <>
                   <Avatar
-                    src={artistProfile.avatar}
-                    alt={artistProfile.fullName}
+                    src={selectedProfile.avatar}
+                    alt={selectedProfile.fullName}
                     size="xxl"
                     variant="rounded"
                     className="rounded-lg shadow-lg shadow-blue-gray-500/40"
                   />
                   <div className="text-center md:text-left">
                     <Typography variant="h4" color="blue-gray" className="mb-1 font-bold">
-                      {artistProfile.fullName}
+                      {selectedProfile.fullName}
                     </Typography>
                     <Typography variant="small" className="font-normal text-blue-gray-600 mb-1">
-                      {artistProfile.emailAddress}
+                      {selectedProfile.emailAddress}
                     </Typography>
                     <Typography variant="small" color="green" className="font-semibold">
-                      Balance: ${artistProfile.balance}
+                      Balance: ${selectedProfile.balance}
                     </Typography>
                   </div>
                 </>
@@ -100,13 +82,16 @@ export function Profile() {
             <div className="w-64">
               <Select
                 label="Select Artist"
-                value={artistId}
-                onChange={(value) => setArtistId(value)}
+                value={selectedProfile ? selectedProfile.accountId : ""}
+                onChange={(value) => {
+                  const profile = profiles.find((p) => p.accountId === value);
+                  setSelectedProfile(profile);
+                }}
                 size="lg"
               >
-                {artistNames.map((artist) => (
-                  <Option key={artist.id} value={artist.id}>
-                    {artist.name}
+                {profiles.map((profile) => (
+                  <Option key={profile.accountId} value={profile.accountId}>
+                    {profile.fullName}
                   </Option>
                 ))}
               </Select>
@@ -120,14 +105,19 @@ export function Profile() {
           )}
 
           {/* Artworks Information */}
-          {artistProfile && artistProfile.viewArtworks && (
+          {selectedProfile && selectedProfile.viewArtworks && (
             <div>
               <Typography variant="h5" color="blue-gray" className="mb-4 font-semibold">
                 Artworks
               </Typography>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {artistProfile.viewArtworks.map((artwork) => (
-                  <Card key={artwork.artworkId} color="transparent" shadow={false} className="border border-blue-gray-50 shadow-sm">
+                {selectedProfile.viewArtworks.map((artwork) => (
+                  <Card
+                    key={artwork.artworkId}
+                    color="transparent"
+                    shadow={false}
+                    className="border border-blue-gray-50 shadow-sm"
+                  >
                     <CardHeader floated={false} color="gray" className="mx-0 mt-0 mb-4 h-64 rounded-lg overflow-hidden">
                       <img src={artwork.image} alt={artwork.name} className="h-full w-full object-cover" />
                     </CardHeader>

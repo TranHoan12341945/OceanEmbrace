@@ -8,13 +8,16 @@ const api = axios.create({
 });
 
 // Thêm interceptor để tự động gắn token vào tất cả các yêu cầu
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => Promise.reject(error));
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // API đăng ký
 export const register = async (password, confirmPassword, fullName, email) => {
@@ -45,17 +48,20 @@ export const login = async (email, password) => {
 };
 
 // Lấy danh sách artwork
-export const fetchArtworks = async (page = 1, pageSize = 50) => {
+export const fetchArtworks = async (page = 1, pageSize = 10) => { 
   try {
     const response = await api.get('/artwork', {
       params: { Page: page, PageSize: pageSize },
     });
-    return response.data.items;
+    return response.data; // Trả về toàn bộ phản hồi API
   } catch (error) {
     console.error('Error fetching artworks:', error);
     throw error;
   }
 };
+
+
+
 
 // Lấy danh sách genres
 export const fetchGenres = async () => {
@@ -68,13 +74,13 @@ export const fetchGenres = async () => {
   }
 };
 
-// Lấy thông tin hồ sơ nghệ sĩ theo ID
-export const fetchProfileById = async (id) => {
+// Lấy thông tin tất cả hồ sơ nghệ sĩ (updated)
+export const fetchProfile = async () => {
   try {
-    const response = await api.get(`/profile/${id}`);
-    return response.data;
+    const response = await api.get('/profile'); // Assuming this endpoint returns all profiles
+    return Array.isArray(response.data) ? response.data : [response.data]; // Ensure it returns an array
   } catch (error) {
-    console.error('Error fetching profile:', error);
+    console.error('Error fetching profiles:', error);
     throw error;
   }
 };
@@ -94,12 +100,7 @@ export const fetchAccountDetails = async (email) => {
 
 export const updateArtwork = async (artworkId, artworkData) => {
   try {
-    const token = localStorage.getItem("token"); // Lấy token từ localStorage nếu cần thiết
-    const response = await api.put(`/artwork/${artworkId}`, artworkData, {
-      headers: {
-        Authorization: `Bearer ${token}`, // Gửi token trong phần header nếu API yêu cầu
-      },
-    });
+    const response = await api.put(`/artwork/${artworkId}`, artworkData);
     return response.data;
   } catch (error) {
     console.error("Error updating artwork:", error);
@@ -109,12 +110,7 @@ export const updateArtwork = async (artworkId, artworkData) => {
 
 export const addArtwork = async (artworkData) => {
   try {
-    const token = localStorage.getItem('token');
-    const response = await api.post('/artwork', artworkData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.post('/artwork', artworkData);
     return response.data;
   } catch (error) {
     console.error('Error adding artwork:', error);
@@ -122,11 +118,12 @@ export const addArtwork = async (artworkData) => {
   }
 };
 
+// Count unique artists from artworks
 export const fetchUniqueArtistsCount = async () => {
   try {
-    const response = await api.get('/artwork'); // Gọi API artwork như bình thường
-    const artworks = response.data.items;
-    const uniqueArtistIds = new Set(artworks.map(artwork => artwork.artistId)); // Đếm số artistId độc nhất
+    const response = await api.get('/artwork');
+    const artworks = response.data.items || [];
+    const uniqueArtistIds = new Set(artworks.map(artwork => artwork.artistId));
     return uniqueArtistIds.size;
   } catch (error) {
     console.error('Error fetching unique artists count:', error);
@@ -154,14 +151,10 @@ export const createReport = async (reportData) => {
   }
 };
 
-// Hàm gọi API để lấy danh sách báo cáo
+// Lấy danh sách báo cáo
 export const fetchReports = async () => {
   try {
-    const response = await api.get('/report', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
+    const response = await api.get('/report');
     return response.data;
   } catch (error) {
     console.error('Error fetching reports:', error);
@@ -171,11 +164,7 @@ export const fetchReports = async () => {
 
 export const fetchOrderById = async (orderId) => {
   try {
-    const response = await api.get(`/order/${orderId}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
+    const response = await api.get(`/order/${orderId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching order:", error);
@@ -185,11 +174,7 @@ export const fetchOrderById = async (orderId) => {
 
 export const fetchBalanceById = async (userId) => {
   try {
-    const response = await api.get(`/balance/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`, // Ensure the token is included
-      },
-    });
+    const response = await api.get(`/balance/${userId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching balance:", error);

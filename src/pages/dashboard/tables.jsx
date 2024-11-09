@@ -5,9 +5,8 @@ import {
   CardBody,
   Typography,
   Avatar,
-  Chip,
 } from "@material-tailwind/react";
-import { fetchProfileById } from "../../api"; // Import hàm fetch API
+import { fetchProfile } from "../../api"; // Import the updated fetch API function
 
 export function Tables() {
   const [artistsData, setArtistsData] = useState([]);
@@ -18,19 +17,16 @@ export function Tables() {
     const loadArtistsData = async () => {
       try {
         setLoading(true);
-        const artistIds = Array.from({ length: 10 }, (_, i) => i + 1); // Tạo mảng ID từ 1 đến 10
-        const artistProfiles = await Promise.all(
-          artistIds.map((id) => fetchProfileById(id))
-        );
+        const profiles = await fetchProfile(); // Assume /profile returns all profiles
 
-        // Xử lý dữ liệu artist và tính toán thông tin cần thiết
-        const formattedData = artistProfiles.map((profile) => {
+        // Process each profile to calculate the required information
+        const formattedData = profiles.map((profile) => {
           const totalArtworks = profile.viewArtworks.length;
           const averageRating =
             profile.viewArtworks.reduce(
-              (acc, artwork) => acc + artwork.artworkRating,
+              (acc, artwork) => acc + (artwork.artworkRating || 0),
               0
-            ) / totalArtworks || 0; // Tránh chia cho 0 khi không có artwork
+            ) / totalArtworks || 0; // Avoid division by 0 if there are no artworks
 
           return {
             id: profile.accountId,
