@@ -1,4 +1,5 @@
-export { default as Home } from "@/pages/dashboard/home";
+export { default as Home } from "@/pages/dashboard/Home";
+
 export * from "@/pages/dashboard/profile";
 export * from "@/pages/dashboard/tables";
 export * from "@/pages/dashboard/notifications";
