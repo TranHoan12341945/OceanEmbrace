@@ -236,4 +236,36 @@ export const withdrawBalance = async (accountId, amount) => {
   }
 };
 
+export const fetchArtists = async () => {
+  try {
+    const response = await api.get('/admin/account');
+    const artists = response.data.filter((account) => account.accountId >= 1 && account.accountId <= 9);
+    return artists;
+  } catch (error) {
+    console.error('Error fetching artists:', error);
+    throw error;
+  }
+};
+
+export const fetchArtworksByArtistId = async (artistId) => {
+  try {
+    const response = await api.get(`/artwork/artist/${artistId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching artworks for artist ${artistId}:`, error);
+    throw error;
+  }
+};
+
+export const updateOrderStatus = async (orderId, status) => {
+  try {
+    const response = await api.patch(`/order/${orderId}`, { status });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    throw error;
+  }
+};
+
+
 export default api;

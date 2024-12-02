@@ -8,11 +8,12 @@ import {
   Select,
   Option,
 } from "@material-tailwind/react";
-import { fetchProfile, fetchGenres } from "../../api";
+import { fetchArtists, fetchArtworksByArtistId, fetchGenres } from "../../api";
 
 export function Profile() {
-  const [profiles, setProfiles] = useState([]);
-  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [artists, setArtists] = useState([]);
+  const [selectedArtist, setSelectedArtist] = useState(null);
+  const [artworks, setArtworks] = useState([]);
   const [genres, setGenres] = useState([]);
   const [error, setError] = useState("");
 
@@ -29,20 +30,37 @@ export function Profile() {
     loadGenres();
   }, []);
 
-  // Fetch all profiles once when the component is mounted
+  // Fetch all artists when the component is mounted
   useEffect(() => {
-    const loadProfiles = async () => {
+    const loadArtists = async () => {
       setError("");
       try {
-        const data = await fetchProfile();
-        setProfiles(data);
-        setSelectedProfile(data[0]); // Set the first profile as the default selection
+        const data = await fetchArtists();
+        setArtists(data);
+        if (data.length > 0) {
+          setSelectedArtist(data[0]); // Select the first artist by default
+        }
       } catch (err) {
-        setError("Failed to fetch profiles.");
+        setError("Failed to fetch artists.");
       }
     };
-    loadProfiles();
+    loadArtists();
   }, []);
+
+  // Fetch artworks for the selected artist
+  useEffect(() => {
+    const loadArtworks = async () => {
+      if (selectedArtist) {
+        try {
+          const data = await fetchArtworksByArtistId(selectedArtist.accountId);
+          setArtworks(data);
+        } catch (err) {
+          console.error("Failed to fetch artworks for artist:", err);
+        }
+      }
+    };
+    loadArtworks();
+  }, [selectedArtist]);
 
   // Helper function to get genre name from genreId
   const getGenreName = (genreId) => {
@@ -56,24 +74,24 @@ export function Profile() {
         <CardBody className="p-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
             <div className="flex items-center gap-8">
-              {selectedProfile && (
+              {selectedArtist && (
                 <>
                   <Avatar
-                    src={selectedProfile.avatar}
-                    alt={selectedProfile.fullName}
+                    src={selectedArtist.avatar}
+                    alt={selectedArtist.fullName}
                     size="xxl"
                     variant="rounded"
                     className="rounded-lg shadow-lg shadow-blue-gray-500/40"
                   />
                   <div className="text-center md:text-left">
                     <Typography variant="h4" color="blue-gray" className="mb-1 font-bold">
-                      {selectedProfile.fullName}
+                      {selectedArtist.fullName}
                     </Typography>
                     <Typography variant="small" className="font-normal text-blue-gray-600 mb-1">
-                      {selectedProfile.emailAddress}
+                      {selectedArtist.emailAddress}
                     </Typography>
                     <Typography variant="small" color="green" className="font-semibold">
-                      Balance: ${selectedProfile.balance}
+                      Balance: ${selectedArtist.balance}
                     </Typography>
                   </div>
                 </>
@@ -82,16 +100,16 @@ export function Profile() {
             <div className="w-64">
               <Select
                 label="Select Artist"
-                value={selectedProfile ? selectedProfile.accountId : ""}
+                value={selectedArtist ? selectedArtist.accountId : ""}
                 onChange={(value) => {
-                  const profile = profiles.find((p) => p.accountId === value);
-                  setSelectedProfile(profile);
+                  const artist = artists.find((a) => a.accountId === value);
+                  setSelectedArtist(artist);
                 }}
                 size="lg"
               >
-                {profiles.map((profile) => (
-                  <Option key={profile.accountId} value={profile.accountId}>
-                    {profile.fullName}
+                {artists.map((artist) => (
+                  <Option key={artist.accountId} value={artist.accountId}>
+                    {artist.fullName}
                   </Option>
                 ))}
               </Select>
@@ -105,13 +123,13 @@ export function Profile() {
           )}
 
           {/* Artworks Information */}
-          {selectedProfile && selectedProfile.viewArtworks && (
+          {artworks && (
             <div>
               <Typography variant="h5" color="blue-gray" className="mb-4 font-semibold">
                 Artworks
               </Typography>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {selectedProfile.viewArtworks.map((artwork) => (
+                {artworks.map((artwork) => (
                   <Card
                     key={artwork.artworkId}
                     color="transparent"

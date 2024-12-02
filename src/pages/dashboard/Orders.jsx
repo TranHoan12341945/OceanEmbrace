@@ -6,9 +6,8 @@ import {
   Typography,
   Input,
   Button,
-  Chip,
 } from "@material-tailwind/react";
-import { fetchOrderById, fetchOrders } from "../../api";
+import { fetchOrderById, fetchOrders, updateOrderStatus } from "../../api";
 
 export function Orders() {
   const [orderData, setOrderData] = useState(null);
@@ -19,7 +18,6 @@ export function Orders() {
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 10;
 
-  // Load all orders with pagination
   const loadOrders = async (page) => {
     try {
       const data = await fetchOrders(page, pageSize);
@@ -31,11 +29,25 @@ export function Orders() {
     }
   };
 
+  const handleStatusChange = async (orderId) => {
+    try {
+      await updateOrderStatus(orderId, 1); // Update status to "Completed"
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.orderId === orderId ? { ...order, status: 1 } : order
+        )
+      );
+      setError("");
+    } catch (error) {
+      console.error("Failed to update order status:", error);
+      setError("Failed to update order status.");
+    }
+  };
+
   useEffect(() => {
     loadOrders(currentPage);
   }, [currentPage]);
 
-  // Handle search by Order ID
   const handleSearch = async () => {
     if (!orderId) return;
 
@@ -74,7 +86,11 @@ export function Orders() {
             Search
           </Button>
         </div>
-        {error && <Typography color="red" className="mt-2">{error}</Typography>}
+        {error && (
+          <Typography color="red" className="mt-2">
+            {error}
+          </Typography>
+        )}
       </Card>
 
       {/* Single Order Details */}
@@ -157,23 +173,25 @@ export function Orders() {
           <table className="w-full min-w-[640px] table-auto">
             <thead>
               <tr>
-                {["Order ID", "Buyer ID", "Total Amount", "Order Date", "Status"].map((el) => (
-                  <th
-                    key={el}
-                    className="border-b border-blue-gray-50 py-3 px-5 text-left"
-                  >
-                    <Typography
-                      variant="small"
-                      className="text-[11px] font-bold uppercase text-blue-gray-400"
+                {["Order ID", "Buyer ID", "Total Amount", "Order Date", "Status", "Action"].map(
+                  (el) => (
+                    <th
+                      key={el}
+                      className="border-b border-blue-gray-50 py-3 px-5 text-left"
                     >
-                      {el}
-                    </Typography>
-                  </th>
-                ))}
+                      <Typography
+                        variant="small"
+                        className="text-[11px] font-bold uppercase text-blue-gray-400"
+                      >
+                        {el}
+                      </Typography>
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
             <tbody>
-              {orders.map((order, key) => (
+              {orders.map((order) => (
                 <tr key={order.orderId}>
                   <td className="py-3 px-5">
                     <Typography variant="small" color="blue-gray" className="font-semibold">
@@ -203,6 +221,17 @@ export function Orders() {
                     >
                       {order.status ? "Completed" : "Pending"}
                     </Typography>
+                  </td>
+                  <td className="py-3 px-5">
+                    {order.status === 0 && (
+                      <Button
+                        color="green"
+                        size="sm"
+                        onClick={() => handleStatusChange(order.orderId)}
+                      >
+                        Mark as Completed
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}

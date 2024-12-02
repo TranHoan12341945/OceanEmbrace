@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { fetchProfile, fetchGenres, fetchArtworks, fetchOrders } from "../../api";
+import { fetchArtists, fetchArtworksByArtistId, fetchGenres, fetchOrders } from "../../api";
 
 // Register necessary chart.js components
 ChartJS.register(
@@ -28,8 +28,8 @@ ChartJS.register(
 
 export function Home() {
   const [artists, setArtists] = useState([]);
-  const [genres, setGenres] = useState([]);
   const [artworks, setArtworks] = useState([]);
+  const [genres, setGenres] = useState([]);
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState({
     totalArtists: 0,
@@ -41,26 +41,32 @@ export function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const artistsData = await fetchProfile();
+        // Fetch artists
+        const artistsData = await fetchArtists();
         setArtists(artistsData);
 
+        // Fetch artworks for each artist
+        const artworksPromises = artistsData.map((artist) =>
+          fetchArtworksByArtistId(artist.accountId)
+        );
+        const artworksData = (await Promise.all(artworksPromises)).flat();
+        setArtworks(artworksData);
+
+        // Fetch genres and orders
         const genresData = await fetchGenres();
         setGenres(genresData);
-
-        const artworksData = await fetchArtworks(1, 50); // page = 1, pageSize = 50
-        setArtworks(artworksData.items);
 
         const ordersData = await fetchOrders(1, 100); // Fetch up to 100 orders
         setOrders(ordersData.items);
 
         // Calculate statistics
-        const totalArtists = artistsData.length;
-        const totalArtworks = artworksData.items.length;
-        const highestRatedArtwork = artworksData.items.reduce((max, artwork) =>
+        const totalArtists = artistsData.length; // Expected to be 9
+        const totalArtworks = artworksData.length;
+        const highestRatedArtwork = artworksData.reduce((max, artwork) =>
           artwork.artworkRating > (max?.artworkRating || 0) ? artwork : max,
           null
         );
-        const lowRatedArtworksCount = artworksData.items.filter(
+        const lowRatedArtworksCount = artworksData.filter(
           (artwork) => artwork.artworkRating < 2
         ).length;
 
@@ -78,7 +84,7 @@ export function Home() {
     fetchData();
   }, []);
 
-  // Data for existing charts
+  // Prepare data for artist comparison
   const artistStats = artists.map((artist) => {
     const artistArtworks = artworks.filter(
       (artwork) => artwork.artistID === artist.accountId
@@ -88,7 +94,7 @@ export function Home() {
       totalArtworks > 0
         ? (
             artistArtworks.reduce(
-              (sum, artwork) => sum + artwork.artworkRating,
+              (sum, artwork) => sum + (artwork.artworkRating || 0),
               0
             ) / totalArtworks
           ).toFixed(2)
@@ -166,7 +172,6 @@ export function Home() {
     ],
   };
 
-  // Data for orders chart (New)
   const ordersByMonth = Array.from({ length: 12 }, (_, month) =>
     orders.filter((order) => new Date(order.orderDate).getMonth() === month).length
   );
@@ -244,7 +249,7 @@ export function Home() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {/* Chart 1: Artist Comparison */}
+        {/* Artist Comparison */}
         <Card>
           <CardBody>
             <Typography variant="h6" color="blue-gray" className="mb-4">
@@ -254,7 +259,7 @@ export function Home() {
           </CardBody>
         </Card>
 
-        {/* Chart 2: Genre Distribution */}
+        {/* Genre Distribution */}
         <Card>
           <CardBody>
             <Typography variant="h6" color="blue-gray" className="mb-4">
@@ -264,7 +269,7 @@ export function Home() {
           </CardBody>
         </Card>
 
-        {/* Chart 3: Artworks by Price */}
+        {/* Artworks by Price */}
         <Card>
           <CardBody>
             <Typography variant="h6" color="blue-gray" className="mb-4">
@@ -274,7 +279,7 @@ export function Home() {
           </CardBody>
         </Card>
 
-        {/* Chart 4: Orders by Month */}
+        {/* Orders by Month */}
         <Card>
           <CardBody>
             <Typography variant="h6" color="blue-gray" className="mb-4">
