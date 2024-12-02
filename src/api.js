@@ -86,12 +86,14 @@ export const fetchProfile = async () => {
 };
 
 // Lấy thông tin tài khoản bằng email
-export const fetchAccountDetails = async (email) => {
+export const fetchAccountDetails = async () => {
   try {
-    const response = await api.get('/admin/account', {
-      params: { userEmail: email },
-    });
-    return response.data;
+    const response = await api.get('/admin/account');
+    console.log("API Response:", response.data); // Log để kiểm tra dữ liệu trả về
+    if (Array.isArray(response.data) && response.data.length > 0) {
+      return response.data[0]; // Lấy phần tử đầu tiên trong mảng
+    }
+    throw new Error("Invalid response format");
   } catch (error) {
     console.error('Error fetching account details:', error);
     throw error;
@@ -162,15 +164,30 @@ export const fetchReports = async () => {
   }
 };
 
+export const fetchOrders = async (page = 1, pageSize = 10) => {
+  try {
+    const response = await api.get('/order', {
+      params: { Page: page, PageSize: pageSize },
+    });
+    console.log("Fetched Orders Data:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};
+
 export const fetchOrderById = async (orderId) => {
   try {
     const response = await api.get(`/order/${orderId}`);
+    console.log("Fetched Order By ID:", response.data); // Log để kiểm tra dữ liệu trả về
     return response.data;
   } catch (error) {
-    console.error("Error fetching order:", error);
-    throw error;
+    console.error("Error fetching order by ID:", error);
+    throw error.response ? error.response.data : new Error("Network Error");
   }
 };
+
 
 export const fetchBalanceById = async (userId) => {
   try {

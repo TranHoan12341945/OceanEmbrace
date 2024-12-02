@@ -58,13 +58,12 @@ export function SignIn() {
               Log in
             </Typography>
             <Typography color="blue-gray" className="text-md mt-1">
-              Please sign in to your account
+              Please sign in to your admin account
             </Typography>
           </div>
           <form onSubmit={handleLogin} className="space-y-6">
             <Input
-              label="Email address"
-              placeholder="you@example.com"
+              placeholder="Email address"
               size="lg"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -72,8 +71,7 @@ export function SignIn() {
             />
             <Input
               type="password"
-              label="Password"
-              placeholder="Enter your password"
+              placeholder="Password"
               size="lg"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -98,12 +96,6 @@ export function SignIn() {
               Log In
             </Button>
           </form>
-          {/* <Typography color="blue-gray" className="text-center mt-6 text-sm">
-            Don’t have an account?{" "}
-            <Link to="/auth/sign-up" className="text-blue-600 font-medium">
-              Sign up
-            </Link>
-          </Typography> */}
         </div>
       </div>
     </section>

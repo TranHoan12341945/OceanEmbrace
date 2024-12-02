@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { fetchProfile, fetchGenres, fetchArtworks } from "../../api";
+import { fetchProfile, fetchGenres, fetchArtworks, fetchOrders } from "../../api";
 
 // Register necessary chart.js components
 ChartJS.register(
@@ -30,6 +30,7 @@ export function Home() {
   const [artists, setArtists] = useState([]);
   const [genres, setGenres] = useState([]);
   const [artworks, setArtworks] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState({
     totalArtists: 0,
     totalArtworks: 0,
@@ -48,6 +49,9 @@ export function Home() {
 
         const artworksData = await fetchArtworks(1, 50); // page = 1, pageSize = 50
         setArtworks(artworksData.items);
+
+        const ordersData = await fetchOrders(1, 100); // Fetch up to 100 orders
+        setOrders(ordersData.items);
 
         // Calculate statistics
         const totalArtists = artistsData.length;
@@ -74,7 +78,7 @@ export function Home() {
     fetchData();
   }, []);
 
-  // Calculate total artworks and average rating per artist
+  // Data for existing charts
   const artistStats = artists.map((artist) => {
     const artistArtworks = artworks.filter(
       (artwork) => artwork.artistID === artist.accountId
@@ -97,7 +101,6 @@ export function Home() {
     };
   });
 
-  // Data for artist comparison chart
   const artistComparisonData = {
     labels: artistStats.map((artist) => artist.name),
     datasets: [
@@ -118,13 +121,11 @@ export function Home() {
     ],
   };
 
-  // Count artworks per genre
   const genreCountData = genres.map((genre) => ({
     name: genre.name,
     count: artworks.filter((artwork) => artwork.genreId === genre.genreId).length,
   }));
 
-  // Data for genre distribution chart
   const genresData = {
     labels: genreCountData.map((item) => item.name),
     datasets: [
@@ -160,6 +161,37 @@ export function Home() {
         data: artworks.map((artwork) => artwork.price),
         backgroundColor: "rgba(255, 159, 64, 0.2)",
         borderColor: "rgba(255, 159, 64, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Data for orders chart (New)
+  const ordersByMonth = Array.from({ length: 12 }, (_, month) =>
+    orders.filter((order) => new Date(order.orderDate).getMonth() === month).length
+  );
+
+  const ordersData = {
+    labels: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
+    datasets: [
+      {
+        label: "Orders by Month",
+        data: ordersByMonth,
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        borderColor: "rgba(75, 192, 192, 1)",
         borderWidth: 1,
       },
     ],
@@ -213,17 +245,17 @@ export function Home() {
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Chart 1: Artist Comparison */}
-        <Card className="col-span-1">
+        <Card>
           <CardBody>
             <Typography variant="h6" color="blue-gray" className="mb-4">
-              Artist Comparison: Total Artworks and Average Rating
+              Artist Comparison
             </Typography>
             <Bar data={artistComparisonData} />
           </CardBody>
         </Card>
 
         {/* Chart 2: Genre Distribution */}
-        <Card className="col-span-1">
+        <Card>
           <CardBody>
             <Typography variant="h6" color="blue-gray" className="mb-4">
               Genre Distribution
@@ -233,12 +265,22 @@ export function Home() {
         </Card>
 
         {/* Chart 3: Artworks by Price */}
-        <Card className="col-span-1">
+        <Card>
           <CardBody>
             <Typography variant="h6" color="blue-gray" className="mb-4">
               Artworks by Price
             </Typography>
             <Line data={artworksData} />
+          </CardBody>
+        </Card>
+
+        {/* Chart 4: Orders by Month */}
+        <Card>
+          <CardBody>
+            <Typography variant="h6" color="blue-gray" className="mb-4">
+              Orders by Month
+            </Typography>
+            <Bar data={ordersData} />
           </CardBody>
         </Card>
       </div>

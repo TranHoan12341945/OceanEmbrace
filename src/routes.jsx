@@ -63,12 +63,12 @@ export const routes = [
         path: "/orders", // Đường dẫn cho Orders
         element: <Orders />, // Trỏ đến component Orders
       },
-      {
-        icon: <TableCellsIcon {...icon} />, // Thêm biểu tượng cho trang Reports
-        name: "reports", // Đặt tên trang là Reports
-        path: "/reports", // Đường dẫn cho Reports
-        element: <Reports />, // Trỏ đến component Reports
-      },
+      // {
+      //   icon: <TableCellsIcon {...icon} />, // Thêm biểu tượng cho trang Reports
+      //   name: "reports", // Đặt tên trang là Reports
+      //   path: "/reports", // Đường dẫn cho Reports
+      //   element: <Reports />, // Trỏ đến component Reports
+      // },
       {
         icon: <InformationCircleIcon {...icon} />, // Thêm biểu tượng cho trang Balance
         name: "balance",

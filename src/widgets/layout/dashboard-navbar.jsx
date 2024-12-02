@@ -6,7 +6,6 @@ import {
   Button,
   IconButton,
   Breadcrumbs,
-  Input,
   Popover,
   PopoverHandler,
   PopoverContent,
@@ -14,7 +13,6 @@ import {
 import {
   UserCircleIcon,
   Cog6ToothIcon,
-  BellIcon,
   Bars3Icon,
 } from "@heroicons/react/24/solid";
 import {
@@ -22,7 +20,7 @@ import {
   setOpenConfigurator,
   setOpenSidenav,
 } from "@/context";
-import { fetchAccountDetails } from "@/api"; // Import API
+import { fetchAccountDetails } from "@/api";
 
 export function DashboardNavbar() {
   const [controller, dispatch] = useMaterialTailwindController();
@@ -31,22 +29,26 @@ export function DashboardNavbar() {
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
   const navigate = useNavigate();
 
-  // State để lưu trạng thái đăng nhập và thông tin người dùng
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const email = localStorage.getItem("userEmail");
 
-    if (token && email) {
+    if (token) {
       setIsLoggedIn(true);
 
-      // Gọi API để lấy thông tin tài khoản từ email
-      fetchAccountDetails(email)
+      fetchAccountDetails()
         .then((data) => {
-          setUserDetails(data); // Lưu thông tin tài khoản vào state
+          console.log("Fetched Profile Data:", data);
+
+          setUserDetails({
+            fullName: data.fullName || "Unknown",
+            emailAddress: data.emailAddress || "Unknown",
+            avatar: data.avatar || "/default-avatar.png",
+            balance: data.balance || 0,
+          });
         })
         .catch((error) => {
           console.error("Error fetching account details:", error);
@@ -56,12 +58,11 @@ export function DashboardNavbar() {
   }, []);
 
   const handleLogout = () => {
-    // Xóa token và thông tin người dùng khỏi localStorage khi đăng xuất
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
     setIsLoggedIn(false);
     setUserDetails(null);
-    navigate("/auth/sign-in"); // Điều hướng đến trang đăng nhập
+    navigate("/auth/sign-in");
   };
 
   return (
@@ -104,9 +105,6 @@ export function DashboardNavbar() {
           </Typography>
         </div>
         <div className="flex items-center">
-          <div className="mr-auto md:mr-4 md:w-56">
-            <Input label="Search" />
-          </div>
           <IconButton
             variant="text"
             color="blue-gray"
@@ -116,7 +114,6 @@ export function DashboardNavbar() {
             <Bars3Icon strokeWidth={3} className="h-6 w-6 text-blue-gray-500" />
           </IconButton>
 
-          {/* Kiểm tra trạng thái đăng nhập */}
           {isLoggedIn && userDetails ? (
             <Popover open={popoverOpen} handler={setPopoverOpen}>
               <PopoverHandler>
@@ -124,32 +121,44 @@ export function DashboardNavbar() {
                   variant="text"
                   color="blue-gray"
                   onClick={() => setPopoverOpen(!popoverOpen)}
+                  className="flex items-center gap-2"
                 >
+                  <img
+                    src={userDetails.avatar}
+                    alt="Avatar"
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
                   {userDetails.fullName}
                 </Button>
               </PopoverHandler>
               <PopoverContent className="p-4 bg-white border border-blue-gray-100 rounded-lg shadow-lg">
-                <Typography variant="small" color="blue-gray" className="font-semibold">
-                  Full Name: {userDetails.fullName}
-                </Typography>
-                <Typography variant="small" color="blue-gray">
-                  Email: {userDetails.emailAddress}
-                </Typography>
-                <Typography variant="small" color="blue-gray">
-                  Balance: ${userDetails.balance}
-                </Typography>
-                <Button
-                  variant="text"
-                  color="blue-gray"
-                  className="mt-2"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </Button>
+                <div className="flex flex-col items-center">
+                  <img
+                    src={userDetails.avatar}
+                    alt={`${userDetails.fullName}'s Avatar`}
+                    className="h-16 w-16 rounded-full border border-gray-200 object-cover mb-4"
+                  />
+                  <Typography variant="small" color="blue-gray" className="font-semibold">
+                    Full Name: {userDetails.fullName}
+                  </Typography>
+                  <Typography variant="small" color="blue-gray">
+                    Email: {userDetails.emailAddress}
+                  </Typography>
+                  <Typography variant="small" color="blue-gray">
+                    Balance: ${userDetails.balance.toFixed(2)}
+                  </Typography>
+                  <Button
+                    variant="text"
+                    color="blue-gray"
+                    className="mt-2"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </Button>
+                </div>
               </PopoverContent>
             </Popover>
           ) : (
-            // Nếu chưa đăng nhập, hiển thị nút "Sign In"
             <Link to="/auth/sign-in">
               <Button
                 variant="text"

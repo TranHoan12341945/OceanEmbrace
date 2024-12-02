@@ -27,10 +27,10 @@ export function Footer({ routes }) {
 
 Footer.defaultProps = {
   routes: [
-    { name: "Ocean Embrace", path: "https://www.creative-tim.com" },
-    { name: "About Us", path: "https://www.creative-tim.com/presentation" },
-    { name: "Blog", path: "https://www.creative-tim.com/blog" },
-    { name: "License", path: "https://www.creative-tim.com/license" },
+    { name: "Ocean Embrace", path: "https://www.facebook.com/profile.php?id=61565902633656" },
+    { name: "About Us", path: "https://www.facebook.com/profile.php?id=61565902633656" },
+    { name: "Blog", path: "https://www.facebook.com/profile.php?id=61565902633656" },
+    { name: "License", path: "https://www.facebook.com/profile.php?id=61565902633656" },
   ],
 };
 
