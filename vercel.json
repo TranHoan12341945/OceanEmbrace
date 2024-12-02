@@ -1,5 +1,5 @@
 {
     "rewrites": [
-      { "source": "/(.*)", "destination": "http://poserdungeon.myddns.me:5000/:match*" }
+      { "source": "/api/:match*", "destination": "http://poserdungeon.myddns.me:5000/:match*" }
     ]
   }
