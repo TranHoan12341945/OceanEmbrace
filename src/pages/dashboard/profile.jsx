@@ -17,6 +17,9 @@ export function Profile() {
   const [genres, setGenres] = useState([]);
   const [error, setError] = useState("");
 
+  const defaultAvatar =
+    "https://static.vecteezy.com/system/resources/previews/009/734/564/non_2x/default-avatar-profile-icon-of-social-media-user-vector.jpg";
+
   // Fetch genres once when the component is mounted
   useEffect(() => {
     const loadGenres = async () => {
@@ -36,9 +39,14 @@ export function Profile() {
       setError("");
       try {
         const data = await fetchArtists();
-        setArtists(data);
-        if (data.length > 0) {
-          setSelectedArtist(data[0]); // Select the first artist by default
+        // Replace avatar with default image for all artists
+        const updatedArtists = data.map((artist) => ({
+          ...artist,
+          avatar: defaultAvatar,
+        }));
+        setArtists(updatedArtists);
+        if (updatedArtists.length > 0) {
+          setSelectedArtist(updatedArtists[0]); // Select the first artist by default
         }
       } catch (err) {
         setError("Failed to fetch artists.");

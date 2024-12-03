@@ -13,6 +13,9 @@ export function Tables() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const defaultAvatar =
+    "https://static.vecteezy.com/system/resources/previews/009/734/564/non_2x/default-avatar-profile-icon-of-social-media-user-vector.jpg";
+
   useEffect(() => {
     const loadArtistsData = async () => {
       try {
@@ -38,7 +41,7 @@ export function Tables() {
                 id: artist.accountId,
                 fullName: artist.fullName,
                 emailAddress: artist.emailAddress,
-                avatar: artist.avatar,
+                avatar: defaultAvatar, // Replace avatar with default image
                 totalArtworks,
                 averageRating,
               };
@@ -47,7 +50,7 @@ export function Tables() {
                 id: artist.accountId,
                 fullName: artist.fullName,
                 emailAddress: artist.emailAddress,
-                avatar: artist.avatar,
+                avatar: defaultAvatar, // Replace avatar with default image
                 totalArtworks: 0,
                 averageRating: "N/A",
               };

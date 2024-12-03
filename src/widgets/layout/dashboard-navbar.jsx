@@ -46,7 +46,8 @@ export function DashboardNavbar() {
           setUserDetails({
             fullName: data.fullName || "Unknown",
             emailAddress: data.emailAddress || "Unknown",
-            avatar: data.avatar || "/default-avatar.png",
+            avatar:
+              "https://static.vecteezy.com/system/resources/previews/009/734/564/non_2x/default-avatar-profile-icon-of-social-media-user-vector.jpg",
             balance: data.balance || 0,
           });
         })
